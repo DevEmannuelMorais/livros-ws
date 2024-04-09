@@ -6,9 +6,11 @@ import br.com.emannuelmorais.livrosws.exception.ApiBusinessException;
 import br.com.emannuelmorais.livrosws.model.Livro;
 import br.com.emannuelmorais.livrosws.repository.LivrosRepository;
 import br.com.emannuelmorais.livrosws.utils.Diretorios;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,13 +53,17 @@ public class LivroService {
         String fileName = "capa_livro_" + isbnLivro + ".jpg";
         return salvarArquivo(diretorios.getPathImage(), fileName, arquivo);
     }
-
+    @Transactional
     public Resource downloadPdf(String isbn) throws MalformedURLException {
         Livro  livro = findLivroByIsbn(isbn);
-//        if (livro == null) {
-//            throw new ApiBusinessException("Livro não encontrado");
-//        }
+        if (livro == null)
+            throw new ApiBusinessException(String.format("livro não encontrado. ISBN: %s", isbn));
+
         Path path = Paths.get(livro.getPdfLivro());
+
+        if( !Files.exists(path))
+            throw new ApiBusinessException(String.format("arquivo não encontrado. no Caminho:  %s", livro.getPdfLivro()));
+
         return new UrlResource(path.toUri());
 
     }

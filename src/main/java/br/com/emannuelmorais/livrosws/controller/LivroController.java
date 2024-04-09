@@ -1,9 +1,10 @@
 package br.com.emannuelmorais.livrosws.controller;
 
 import br.com.emannuelmorais.livrosws.dto.request.CadastrarLivroRequest;
+import br.com.emannuelmorais.livrosws.dto.response.BuscarPdfLivroResponse;
 import br.com.emannuelmorais.livrosws.dto.response.CadastrarLivroResponse;
-import br.com.emannuelmorais.livrosws.exception.ApiBusinessException;
 import br.com.emannuelmorais.livrosws.service.LivroService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -23,23 +24,20 @@ public class LivroController {
     private final LivroService livroService;
 
     @PostMapping("/cadastrar")
-    public ResponseEntity<CadastrarLivroResponse> cadastrarLivro(@ModelAttribute CadastrarLivroRequest request) throws IOException, ParseException {
+    public ResponseEntity<CadastrarLivroResponse> cadastrarLivro(@ModelAttribute @Valid CadastrarLivroRequest request) throws IOException, ParseException {
        CadastrarLivroResponse response = livroService.cadastrarLivro(request);
 
        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/buscar-pdf-livro")
-    public ResponseEntity<Resource> buscarPdfLivro(@RequestBody String isbn) throws MalformedURLException {
-        Resource resource = livroService.downloadPdf(isbn);
+    public ResponseEntity<Resource> buscarPdfLivro(@RequestBody @Valid BuscarPdfLivroResponse.BuscarPdfLivroRequest buscarPdfLivroRequest) throws MalformedURLException {
+        Resource resource = livroService.downloadPdf(buscarPdfLivroRequest.getIsbn());
 
-        if (resource == null) {
-            throw new ApiBusinessException("Livro não encontrado");
-        }
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
-                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentType(MediaType.IMAGE_JPEG)
                     .body(resource);
     }
 }
