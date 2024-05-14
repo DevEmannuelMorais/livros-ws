@@ -56,6 +56,7 @@ public class ApiError {
         this.timestamp = ZonedDateTime.now();
     }
 
+
     public ApiError(HttpStatus status, String method, String path) {
         this.timestamp = ZonedDateTime.now();
         this.httpStatus = status;
